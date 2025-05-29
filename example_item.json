@@ -1,0 +1,17 @@
+{
+  "PK_SystemDate":   "SYSTEM#financial-app-001#2024_03",
+  "SK_AuditDetails": "2024-03-15T12:34:56Z#550e8400-e29b-41d4-a716-446655440000",
+  "audit_id":        "550e8400-e29b-41d4-a716-446655440000",
+  "timestamp":       "2024-03-15T12:34:56Z",
+  "system_id":       "financial-app-001",
+  "system_name":     "WM POR-ITR",
+  "user_id":         "user-12345",
+  "resource_type":   "TRADEPLAN",
+  "resource_id":     "tradeplan-987654",
+  "action_type":     "UPDATE",
+  "action_description": "Updated trade plan",
+  "data_before":     "{…}",
+  "data_after":      "{…}",
+  "retention_years":"7",
+  "deletion_date":   1710424496
+}

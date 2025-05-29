@@ -1,0 +1,47 @@
+{
+    "TableName": "AuditLogs",
+    "AttributeDefinitions": [
+      { "AttributeName": "PK_SystemDate",   "AttributeType": "S" },
+      { "AttributeName": "SK_AuditDetails", "AttributeType": "S" },
+      { "AttributeName": "user_id",         "AttributeType": "S" },
+      { "AttributeName": "resource_id",     "AttributeType": "S" },
+      { "AttributeName": "timestamp",       "AttributeType": "S" }
+    ],
+    "KeySchema": [
+      { "AttributeName": "PK_SystemDate",   "KeyType": "HASH" },
+      { "AttributeName": "SK_AuditDetails", "KeyType": "RANGE" }
+    ],
+    "BillingMode": "PAY_PER_REQUEST",
+    "GlobalSecondaryIndexes": [
+      {
+        "IndexName": "user-timestamp-index",
+        "KeySchema": [
+          { "AttributeName": "user_id",   "KeyType": "HASH" },
+          { "AttributeName": "timestamp", "KeyType": "RANGE" }
+        ],
+        "Projection": {
+          "ProjectionType": "INCLUDE",
+          "NonKeyAttributes": [
+            "action_type",
+            "resource_type",
+            "action_description"
+          ]
+        }
+      },
+      {
+        "IndexName": "resource-timestamp-index",
+        "KeySchema": [
+          { "AttributeName": "resource_id", "KeyType": "HASH" },
+          { "AttributeName": "timestamp",   "KeyType": "RANGE" }
+        ],
+        "Projection": {
+          "ProjectionType": "INCLUDE",
+          "NonKeyAttributes": [
+            "action_type",
+            "user_id",
+            "action_description"
+          ]
+        }
+      }
+    ]
+  }

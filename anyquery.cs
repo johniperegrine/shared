@@ -249,35 +249,5 @@ namespace GenericDynamoQuery
                 Headers = new Dictionary<string, string> { { "Content-Type", "application/json" } }
             };
         }
-
-        public class AuditLogItem
-        {
-            [JsonPropertyName("audit_id")]
-            public string AuditId { get; set; }
-
-            [JsonPropertyName("timestamp")]
-            public string Timestamp { get; set; }
-
-            [JsonPropertyName("system_id")]
-            public string SystemId { get; set; }
-
-            [JsonPropertyName("system_name")]
-            public string SystemName { get; set; }
-
-            [JsonPropertyName("user_id")]
-            public string UserId { get; set; }
-            [JsonPropertyName("resource_type")]
-            public string ResourceType { get; set; }
-            [JsonPropertyName("resource_id")]
-            public string ResourceId { get; set; }
-            [JsonPropertyName("action_type")]
-            public string ActionType { get; set; }
-            [JsonPropertyName("action_description")]
-            public string ActionDescription { get; set; }
-            [JsonPropertyName("data_before")]
-            public string DataBefore { get; set; }
-            [JsonPropertyName("data_after")]
-            public string DataAfter { get; set; }
-        }
     }
 }

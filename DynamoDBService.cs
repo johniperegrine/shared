@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks; // Added for Task
+using System.Threading.Tasks;
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.DataModel;
 using Amazon.DynamoDBv2.DocumentModel;
@@ -17,6 +17,7 @@ namespace AWSTest
     public class DynamoDBService(IAmazonDynamoDB dynamoDBClient) : IDynamoDBService
     {
         private readonly IAmazonDynamoDB _client = dynamoDBClient;
+        private readonly IDynamoDBContext _context = new DynamoDBContextBuilder().WithDynamoDBClient(() => dynamoDBClient).Build();
         private readonly string _tableName = Environment.GetEnvironmentVariable("AUDIT_TABLE") ?? "user_audit_table";
         private readonly string[] _indexFieldNames = { "userId", "applicationId", "resourceId" };
 
@@ -32,13 +33,10 @@ namespace AWSTest
             var attributeNames = new Dictionary<string, string>();
             var attributeValues = new Dictionary<string, AttributeValue>();
 
-            // Process filters in a single pass
             foreach (var (key, value) in filters)
             {
-                // Skip empty values
                 if (string.IsNullOrEmpty(value)) continue;
 
-                // Handle index fields
                 if (indexField == null && _indexFieldNames.Contains(key))
                 {
                     indexField = key;
@@ -49,7 +47,6 @@ namespace AWSTest
                     continue;
                 }
 
-                // Handle date range filters
                 if (key == "startDate")
                 {
                     attributeNames["#ts"] = "eventTimestamp";
@@ -62,7 +59,6 @@ namespace AWSTest
                     attributeValues[":" + key] = new AttributeValue { S = value };
                     filterExpressions.Add($"#ts <= :{key}");
                 }
-                // Handle other filterable properties
                 else
                 {
                     attributeNames["#" + key] = key;
@@ -74,7 +70,6 @@ namespace AWSTest
             if (indexField == null)
                 throw new ArgumentException($"Must include one of: {string.Join(", ", _indexFieldNames)}");
 
-            // Execute paginated query
             var results = new List<AuditItem>();
             var request = new QueryRequest
             {
@@ -90,30 +85,13 @@ namespace AWSTest
             do
             {
                 response = await _client.QueryAsync(request);
-                
-                // Convert each item to an AuditItem using manual deserialization
+
                 foreach (var item in response.Items)
                 {
-                    results.Add(new AuditItem
-                    {
-                        UserId = item.GetValueOrDefault("userId")?.S,
-                        ApplicationId = item.GetValueOrDefault("applicationId")?.S,
-                        ResourceId = item.GetValueOrDefault("resourceId")?.S,
-                        AuditId = item.GetValueOrDefault("auditId")?.S,
-                        EventTimestamp = item.GetValueOrDefault("eventTimestamp")?.S,
-                        SystemId = item.GetValueOrDefault("systemId")?.S,
-                        SystemName = item.GetValueOrDefault("systemName")?.S,
-                        Environment = item.GetValueOrDefault("environment")?.S,
-                        Email = item.GetValueOrDefault("email")?.S,
-                        Role = item.GetValueOrDefault("role")?.S,
-                        ActionType = item.GetValueOrDefault("actionType")?.S,
-                        ResourceType = item.GetValueOrDefault("resourceType")?.S,
-                        ActionDescription = item.GetValueOrDefault("actionDescription")?.S,
-                        DataBefore = item.GetValueOrDefault("dataBefore")?.S,
-                        DataAfter = item.GetValueOrDefault("dataAfter")?.S,
-                    });
+                    var document = Document.FromAttributeMap(item);
+                    results.Add(_context.FromDocument<AuditItem>(document));
                 }
-                
+
                 request.ExclusiveStartKey = response.LastEvaluatedKey;
             } while (response.LastEvaluatedKey?.Count > 0);
 
